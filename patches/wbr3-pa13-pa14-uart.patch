@@ -1,0 +1,26 @@
+--- a/esphome/components/uart/uart_component_libretiny.cpp
++++ b/esphome/components/uart/uart_component_libretiny.cpp
+@@ -64,8 +64,10 @@ void LibreTinyUARTComponent::setup() {
+     return;
+   }
+ #if LT_HW_UART0
+-  else if ((tx_pin == -1 || tx_pin == PIN_SERIAL0_TX) && (rx_pin == -1 || rx_pin == PIN_SERIAL0_RX) &&
+-           !should_fallback_to_software_serial()) {
++  else if ((((tx_pin == -1 || tx_pin == PIN_SERIAL0_TX) &&
++             (rx_pin == -1 || rx_pin == PIN_SERIAL0_RX)) ||
++            (tx_pin == 14 && rx_pin == 13)) &&
++           !should_fallback_to_software_serial()) {
+     this->serial_ = &Serial0;
+     this->hardware_idx_ = 0;
+   }
+@@ -111,6 +113,10 @@ void LibreTinyUARTComponent::setup() {
+     return;
+ #endif
+   }
++  if (this->hardware_idx_ == 0 && tx_pin == 14 && rx_pin == 13) {
++    ESP_LOGI(TAG, "Using alternate UART0 pins RX=PA13 TX=PA14");
++    Serial0.setPins(rx_pin, tx_pin);
++  }
+   this->serial_->begin(this->baud_rate_, get_config());
+ }
+ void LibreTinyUARTComponent::dump_config() {
